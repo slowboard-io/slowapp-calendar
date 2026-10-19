@@ -55,10 +55,10 @@ def google_account(tok):
 
 def account_sources(ctx, req):
     """The run's connected accounts as Sources: every Google account, the iCloud account, and each
-    secret iCal address."""
+    secret iCal address. All three are optional, but not all at once: with none, exit 5."""
     require_contract6(ctx)
     out = []
-    toks = ctx.token("google")
+    toks = ctx.token("google", optional=True)
     for tok in (toks if isinstance(toks, list) else [toks] if toks else []):
         out.append(sources.google_source(req, tok["access_token"], google_account(tok)))
     icloud = ctx.secret("icloud", optional=True)
@@ -68,6 +68,9 @@ def account_sources(ctx, req):
         except ValueError as e:
             raise NeedsConfig(str(e))
     out += sources.ical_sources(req, ctx.secret("ical_url", optional=True))
+    if not out:
+        raise NeedsConfig("no calendar is connected: connect Google, or set the iCloud secret or an iCal address, "
+                          "on the Calendar app's page")
     return out
 
 

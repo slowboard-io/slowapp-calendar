@@ -33,9 +33,11 @@ class SyncCtx:
         self._docs = docs or {}
         self.artifacts, self.summary, self.res = {}, None, None
 
-    def token(self, name):
+    def token(self, name, optional=None):
         assert name == "google"
-        if not self.google:
+        if not self.google:              # the kit: an optional multiple oauth secret with no account is []
+            if optional or MANIFEST["secrets"]["google"].get("optional"):
+                return []
             raise NeedsConfig("secret 'google': no account is connected")
         return [{"access_token": replay.GOOGLE_TOKEN, "expires_at": "2026-10-19T10:00:00-07:00",
                  "scopes": MANIFEST["auth"]["google"]["scopes"], "account": "alex@example.com"}]
@@ -104,13 +106,38 @@ class Sync(unittest.TestCase):
         jobs.sync_job(ctx)
         self.assertEqual(len(self.replay.ai_calls()), 1)
 
-    def test_optional_secrets_and_a_missing_google(self):
+    def test_google_alone(self):
         ctx = SyncCtx(self.data, icloud=False, ical=False, ai=False)
         jobs.sync_job(ctx)
         self.assertEqual(self.replay.ai_calls(), [])
         self.assertFalse(any("icloud" in c["url"] for c in self.replay.calls))
-        with self.assertRaises(NeedsConfig):
-            jobs.sync_job(SyncCtx(self.data, google=False))
+
+    def test_icloud_alone(self):
+        ctx = SyncCtx(self.data, google=False, ical=False)
+        jobs.sync_job(ctx)
+        self.assertFalse(any("googleapis" in c["url"] or "calendar.google.com" in c["url"] for c in self.replay.calls))
+        rows = ctx.artifacts[("agenda", "agenda.json")]
+        self.assertEqual(sorted({r["title"] for r in rows}),
+                         ["Board game night", "Book club", "Hike: East Sooke loop", "Jo & Kim's wedding", "Physio", "Water plants"])
+        self.assertEqual(ctx.summary["status"], "ok")
+        self.assertEqual(len(self.replay.ai_calls()), 1)
+
+    def test_ical_address_alone(self):
+        ctx = SyncCtx(self.data, google=False, icloud=False)
+        jobs.sync_job(ctx)
+        self.assertEqual({c["url"].split("?")[0] for c in self.replay.calls if "inference" not in c["url"]}, {replay.ICAL_URL})
+        rows = ctx.artifacts[("agenda", "agenda.json")]
+        self.assertEqual({r["title"]: r["tag"] for r in rows},
+                         {"Mum's birthday": "important", "School pickup swap with the Nguyens": "regular"})
+
+    def test_no_source_needs_config(self):
+        for job in (jobs.sync_job, jobs.calendars_job):
+            ctx = SyncCtx(self.data, google=False, icloud=False, ical=False)
+            with self.assertRaises(NeedsConfig) as e:
+                job(ctx)
+            self.assertIn("no calendar is connected", str(e.exception))
+            self.assertEqual(self.replay.calls, [])
+            self.assertEqual(ctx.artifacts, {})
 
     def test_a_bad_icloud_secret_needs_config(self):
         ctx = SyncCtx(self.data)
@@ -207,3 +234,25 @@ class KitContract6(unittest.TestCase):
         self.assertIn("Pitch!", {x["title"] for x in rows})
         self.assertFalse(any("calendar.google.com/calendar/ical" in c["url"] for c in r.calls))   # ical_url not set
         self.assertEqual(len(r.ai_calls()), 1)
+
+    def env(self, tmp):
+        return dict(SLOWAPP_CONTRACT="6", SLOWAPP_MODE="live", SLOWAPP_NOW=replay.NOW, SLOWAPP_REASON="schedule",
+                    SLOWAPP_MANIFEST=str(ROOT / "slowapp.toml"), SLOWAPP_STATE=str(tmp / "data"), SLOWAPP_IN=str(tmp / "in"),
+                    SLOWAPP_OUT=str(tmp / "out"), SLOWAPP_SECRETS=str(tmp / "secrets"), TZ="America/Vancouver")
+
+    def test_ical_alone_and_nothing_through_the_kit(self):
+        from slowapp_kit import EXIT_NEEDS_CONFIG, execute
+        tmp = Path(tempfile.mkdtemp())
+        for d in ("data", "in", "out", "secrets"):
+            (tmp / d).mkdir()
+        r = replay.Replay()
+        with mock.patch.object(platform.http, "urllib_request", r):
+            code, msg = execute("sync", Context.from_env(job="sync", env=self.env(tmp)))
+            self.assertEqual(code, EXIT_NEEDS_CONFIG)
+            self.assertIn("no calendar is connected", msg)
+            (tmp / "secrets/ical_url").write_text(replay.ICAL_URL + "\n")
+            code, _ = execute("sync", Context.from_env(job="sync", env=self.env(tmp)))
+        self.assertEqual(code, 0)
+        rows = json.loads((tmp / "out/artifacts/agenda/agenda.json").read_text())
+        self.assertEqual(len(rows), 2)
+        self.assertFalse(any("googleapis" in c["url"] for c in r.calls))

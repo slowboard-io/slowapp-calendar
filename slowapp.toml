@@ -30,6 +30,7 @@ ai_hour = { type = "integer", default = 5, min = 0, max = 23, label = "Daily AI 
 kind = "oauth"
 auth = "google"
 multiple = true
+optional = true                  # the sync needs at least one of google, icloud and ical_url
 label = "Google Calendar"
 help = "Read-only access to your calendars. Connect each Google account whose calendars you want on the wall."
 

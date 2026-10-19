@@ -11,7 +11,7 @@ on the slim `slowapp-python` base.
 
 | Job | Kind | What it does |
 |---|---|---|
-| `sync` | sync, every 15 min (`min_every` 15 min) | Fetches every connected account, tags new series, writes `/out/artifacts/agenda/agenda.json`. Secrets `google` (OAuth, several accounts), `icloud`, `ical_url`, `ai_key` (the last three optional). `args.ai = true` is "Tag with AI now". A doc's `on_change` runs it too; then it rebuilds from the last fetch without the network or the AI. |
+| `sync` | sync, every 15 min (`min_every` 15 min) | Fetches every connected account, tags new series, writes `/out/artifacts/agenda/agenda.json`. Secrets `google` (OAuth, several accounts), `icloud`, `ical_url`, `ai_key`, all optional; with none of the first three it exits 5 (needs config). `args.ai = true` is "Tag with AI now". A doc's `on_change` runs it too; then it rebuilds from the last fetch without the network or the AI. |
 | `calendars` | sync, on demand | Every account's calendars for the UI's picker, as `result.json`. |
 | `render` | render | The `agenda` slot feed from `/in/artifacts/agenda/`: a home card, and a "later" card when the rows run over. |
 
