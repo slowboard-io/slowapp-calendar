@@ -1,0 +1,123 @@
+{
+ "kind": "calendar#events",
+ "summary": "alex@example.com",
+ "timeZone": "America/Vancouver",
+ "items": [
+  {
+   "kind": "calendar#event",
+   "id": "mumbday",
+   "status": "confirmed",
+   "summary": "Mum's birthday",
+   "start": {
+    "date": "2026-10-23"
+   },
+   "end": {
+    "date": "2026-10-24"
+   },
+   "iCalUID": "mumbday-2026@google.com",
+   "eventType": "default"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "soccer3_20260924T003000Z",
+   "status": "confirmed",
+   "summary": "Soccer practice",
+   "start": {
+    "dateTime": "2026-09-23T17:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-09-23T18:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "soccer3@google.com",
+   "eventType": "default",
+   "recurringEventId": "soccer3"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "soccer3_20261001T003000Z",
+   "status": "confirmed",
+   "summary": "Soccer practice",
+   "start": {
+    "dateTime": "2026-09-30T17:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-09-30T18:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "soccer3@google.com",
+   "eventType": "default",
+   "recurringEventId": "soccer3"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "soccer3_20261008T003000Z",
+   "status": "confirmed",
+   "summary": "Soccer practice",
+   "start": {
+    "dateTime": "2026-10-07T17:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-07T18:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "soccer3@google.com",
+   "eventType": "default",
+   "recurringEventId": "soccer3"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "soccer3_20261015T003000Z",
+   "status": "confirmed",
+   "summary": "Soccer practice",
+   "start": {
+    "dateTime": "2026-10-14T17:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-14T18:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "soccer3@google.com",
+   "eventType": "default",
+   "recurringEventId": "soccer3"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "soccer3_20261022T003000Z",
+   "status": "confirmed",
+   "summary": "Soccer practice",
+   "start": {
+    "dateTime": "2026-10-21T17:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-21T18:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "soccer3@google.com",
+   "eventType": "default",
+   "recurringEventId": "soccer3"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "soccer3_20261029T003000Z",
+   "status": "confirmed",
+   "summary": "Soccer practice",
+   "start": {
+    "dateTime": "2026-10-28T17:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-28T18:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "soccer3@google.com",
+   "eventType": "default",
+   "recurringEventId": "soccer3"
+  }
+ ]
+}

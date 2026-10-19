@@ -1,0 +1,225 @@
+[
+ {
+  "date": "2026-10-12",
+  "title": "Thanksgiving",
+  "start": null,
+  "end": null,
+  "cal": "holiday",
+  "reps": 1
+ },
+ {
+  "date": "2026-10-31",
+  "title": "Halloween",
+  "start": null,
+  "end": null,
+  "cal": "holiday",
+  "reps": 1
+ },
+ {
+  "date": "2026-10-19",
+  "title": "Weekly team sync",
+  "start": "10:00",
+  "end": "10:30",
+  "cal": "calendar",
+  "reps": 7,
+  "tag": "hidden"
+ },
+ {
+  "date": "2026-10-20",
+  "title": "Dentist",
+  "start": "11:00",
+  "end": "12:00",
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "hidden"
+ },
+ {
+  "date": "2026-10-21",
+  "title": "Coffee with Sam",
+  "start": "09:30",
+  "end": "10:00",
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "regular"
+ },
+ {
+  "date": "2026-10-21",
+  "title": "Focus time",
+  "start": "13:00",
+  "end": "15:00",
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "hidden"
+ },
+ {
+  "date": "2026-10-21",
+  "title": "Soccer practice",
+  "start": "17:30",
+  "end": "18:30",
+  "cal": "calendar",
+  "reps": 6,
+  "tag": "regular"
+ },
+ {
+  "date": "2026-10-22",
+  "title": "1:1 Alex / Priya",
+  "start": "14:00",
+  "end": "14:30",
+  "cal": "calendar",
+  "reps": 6,
+  "tag": "hidden"
+ },
+ {
+  "date": "2026-10-22",
+  "title": "Pitch night at the Tectoria",
+  "start": "18:00",
+  "end": "21:00",
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "important"
+ },
+ {
+  "date": "2026-10-22",
+  "title": "Board game night",
+  "start": "19:00",
+  "end": "22:00",
+  "cal": "calendar",
+  "reps": 5,
+  "tag": "regular"
+ },
+ {
+  "date": "2026-10-23",
+  "title": "Mum's birthday",
+  "start": null,
+  "end": null,
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "important"
+ },
+ {
+  "date": "2026-10-24",
+  "title": "Flight to Toronto (AC 112)",
+  "start": "07:15",
+  "end": "12:40",
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "important"
+ },
+ {
+  "date": "2026-10-25",
+  "title": "Water plants",
+  "start": null,
+  "end": null,
+  "cal": "calendar",
+  "reps": 6,
+  "tag": "hidden"
+ },
+ {
+  "date": "2026-10-25",
+  "title": "Hike: East Sooke loop",
+  "start": "09:00",
+  "end": "13:00",
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "regular"
+ },
+ {
+  "date": "2026-10-26",
+  "title": "Weekly team sync",
+  "start": "10:00",
+  "end": "10:30",
+  "cal": "calendar",
+  "reps": 7,
+  "tag": "hidden"
+ },
+ {
+  "date": "2026-10-27",
+  "title": "Physio",
+  "start": "09:00",
+  "end": "09:45",
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "hidden"
+ },
+ {
+  "date": "2026-10-27",
+  "title": "School pickup swap with the Nguyens",
+  "start": "15:00",
+  "end": "15:30",
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "regular"
+ },
+ {
+  "date": "2026-10-28",
+  "title": "Soccer practice",
+  "start": "17:30",
+  "end": "18:30",
+  "cal": "calendar",
+  "reps": 6,
+  "tag": "regular"
+ },
+ {
+  "date": "2026-10-28",
+  "title": "Book club",
+  "start": "19:30",
+  "end": "21:00",
+  "cal": "calendar",
+  "reps": 2,
+  "tag": "regular"
+ },
+ {
+  "date": "2026-10-29",
+  "title": "1:1 Alex / Priya",
+  "start": "14:00",
+  "end": "14:30",
+  "cal": "calendar",
+  "reps": 6,
+  "tag": "hidden"
+ },
+ {
+  "date": "2026-10-30",
+  "title": "Demo day dry run",
+  "start": "15:00",
+  "end": "16:30",
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "important"
+ },
+ {
+  "date": "2026-10-30",
+  "title": "Board game night",
+  "start": "19:00",
+  "end": "22:00",
+  "cal": "calendar",
+  "reps": 5,
+  "tag": "regular"
+ },
+ {
+  "date": "2026-11-01",
+  "title": "Water plants",
+  "start": null,
+  "end": null,
+  "cal": "calendar",
+  "reps": 6,
+  "tag": "hidden"
+ },
+ {
+  "date": "2026-11-01",
+  "title": "Jo & Kim's wedding",
+  "start": "15:00",
+  "end": "23:00",
+  "cal": "calendar",
+  "reps": 1,
+  "tag": "important"
+ },
+ {
+  "date": "2026-11-02",
+  "title": "Weekly team sync",
+  "start": "10:00",
+  "end": "10:30",
+  "cal": "calendar",
+  "reps": 7,
+  "tag": "hidden"
+ }
+]

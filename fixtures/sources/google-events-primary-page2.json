@@ -1,0 +1,207 @@
+{
+ "kind": "calendar#events",
+ "summary": "alex@example.com",
+ "timeZone": "America/Vancouver",
+ "items": [
+  {
+   "kind": "calendar#event",
+   "id": "coffeesam",
+   "status": "confirmed",
+   "summary": "Coffee with Sam",
+   "start": {
+    "dateTime": "2026-10-21T09:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-21T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "coffeesam@google.com",
+   "eventType": "default"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "focus1021",
+   "status": "confirmed",
+   "summary": "Focus time",
+   "start": {
+    "dateTime": "2026-10-21T13:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-21T15:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "focus1021@google.com",
+   "eventType": "focusTime"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "vendordemo",
+   "status": "confirmed",
+   "summary": "Vendor demo",
+   "start": {
+    "dateTime": "2026-10-21T14:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-21T15:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "vendordemo@google.com",
+   "eventType": "default",
+   "attendees": [
+    {
+     "email": "alex@example.com",
+     "self": true,
+     "responseStatus": "declined"
+    },
+    {
+     "email": "sales@vendor.example",
+     "organizer": true,
+     "responseStatus": "accepted"
+    }
+   ]
+  },
+  {
+   "kind": "calendar#event",
+   "id": "oneonone7_20261022T210000Z",
+   "status": "confirmed",
+   "summary": "1:1 Alex / Priya",
+   "start": {
+    "dateTime": "2026-10-22T14:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-22T14:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "oneonone7@google.com",
+   "eventType": "default",
+   "recurringEventId": "oneonone7"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "pitchnight",
+   "status": "confirmed",
+   "summary": "Startup pitch night",
+   "start": {
+    "dateTime": "2026-10-22T18:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-22T21:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "pitchnight@google.com",
+   "eventType": "default"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "oldmeeting",
+   "status": "cancelled",
+   "summary": "Old planning meeting",
+   "start": {
+    "dateTime": "2026-10-23T11:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-23T12:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "oldmeeting@google.com",
+   "eventType": "default"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "flightyyz",
+   "status": "confirmed",
+   "summary": "Flight to Toronto (AC 112)",
+   "start": {
+    "dateTime": "2026-10-24T07:15:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-24T15:40:00-04:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "flightyyz@google.com",
+   "eventType": "default"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "teamsync01_20261026T170000Z",
+   "status": "confirmed",
+   "summary": "Weekly team sync",
+   "start": {
+    "dateTime": "2026-10-26T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-26T10:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "teamsync01@google.com",
+   "eventType": "default",
+   "recurringEventId": "teamsync01",
+   "originalStartTime": {
+    "dateTime": "2026-10-26T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   }
+  },
+  {
+   "kind": "calendar#event",
+   "id": "oneonone7_20261029T210000Z",
+   "status": "confirmed",
+   "summary": "1:1 Alex / Priya",
+   "start": {
+    "dateTime": "2026-10-29T14:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-29T14:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "oneonone7@google.com",
+   "eventType": "default",
+   "recurringEventId": "oneonone7"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "demodayq4",
+   "status": "confirmed",
+   "summary": "Demo day dry run",
+   "start": {
+    "dateTime": "2026-10-30T15:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-30T16:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "demodayq4@google.com",
+   "eventType": "default"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "teamsync01_20261102T170000Z",
+   "status": "confirmed",
+   "summary": "Weekly team sync",
+   "start": {
+    "dateTime": "2026-11-02T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-11-02T10:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "teamsync01@google.com",
+   "eventType": "default",
+   "recurringEventId": "teamsync01",
+   "originalStartTime": {
+    "dateTime": "2026-11-02T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   }
+  }
+ ]
+}

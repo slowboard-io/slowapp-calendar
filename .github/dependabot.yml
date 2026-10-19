@@ -1,0 +1,23 @@
+version: 2
+
+# slowapp-base releases the base image and the reusable workflow under one vX.Y.Z tag, so one
+# multi-ecosystem group bumps the Dockerfile's slowapp-python pin and app.yml's workflow ref in a
+# single PR (they'd fail CI apart: the workflow reads the SDK out of the base the Dockerfile pins).
+multi-ecosystem-groups:
+  slowapp-base:
+    schedule:
+      interval: weekly
+
+updates:
+  - package-ecosystem: docker          # the slowapp-python pin in Dockerfile
+    directory: /
+    patterns: ["mike-anderson/slowapp-python*"]
+    multi-ecosystem-group: slowapp-base
+    cooldown:                          # wait a few days after a release, for its quick fixes
+      default-days: 3
+  - package-ecosystem: github-actions  # the slowapp-base workflow ref
+    directory: /
+    patterns: ["mike-anderson/slowapp-base*"]
+    multi-ecosystem-group: slowapp-base
+    cooldown:
+      default-days: 3

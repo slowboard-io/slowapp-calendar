@@ -1,0 +1,11 @@
+{
+ "tags": {
+  "google:alex@example.com|demodayq4@google.com": {"tag": "important", "by": "user", "why": "set on the page", "at": "2026-10-18"}
+ },
+ "names": {
+  "google:alex@example.com|pitchnight@google.com": "Pitch night at the Tectoria"
+ },
+ "shown": {
+  "icloud:alex@icloud.com|https://p42-caldav.icloud.com:443/123456789/calendars/home/": true
+ }
+}

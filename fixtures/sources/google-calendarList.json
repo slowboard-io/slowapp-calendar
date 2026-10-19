@@ -1,0 +1,28 @@
+{
+ "kind": "calendar#calendarList",
+ "items": [
+  {
+   "kind": "calendar#calendarListEntry",
+   "id": "alex@example.com",
+   "summary": "alex@example.com",
+   "summaryOverride": "Alex",
+   "timeZone": "America/Vancouver",
+   "accessRole": "owner",
+   "primary": true
+  },
+  {
+   "kind": "calendar#calendarListEntry",
+   "id": "family0123@group.calendar.google.com",
+   "summary": "Family",
+   "timeZone": "America/Vancouver",
+   "accessRole": "writer"
+  },
+  {
+   "kind": "calendar#calendarListEntry",
+   "id": "en.canadian#holiday@group.v.calendar.google.com",
+   "summary": "Holidays in Canada",
+   "timeZone": "America/Vancouver",
+   "accessRole": "reader"
+  }
+ ]
+}

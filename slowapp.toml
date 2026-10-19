@@ -1,0 +1,144 @@
+# The calendar slowapp: a household's Google and iCloud calendars (and secret iCal addresses),
+# tagged hidden / regular / important by its own AI key, as an agenda for one third of the board.
+# A port of epaper-dashboard tools/calsync.py to contract 6 (the secrets track's S6): `sync` fetches
+# with the secrets and writes the `agenda` artifact; `render` draws it with neither.
+[app]
+id = "calendar"
+title = "Calendar"
+contract = 6
+image = "ghcr.io/mike-anderson/slowapp-calendar"
+memory = "64m"
+tmp = "8m"
+timeout_s = 120
+network = "egress"               # the sync jobs' default; render never has the network (contract 6)
+data = { max_mb = 4 }            # sync's state: the last good fetch per account and the AI's tag cache
+blurb = "Your Google and iCloud calendars, with only what matters on the wall."
+about = "The next two weeks from your Google accounts, iCloud and any iCal address, sorted by your own AI key into hidden, regular and important: weekly work meetings and private appointments stay off the wall, occasions and trips are in red. Set any event yourself and the AI leaves it alone."
+ink = "red"
+repo = "https://github.com/mike-anderson/slowapp-calendar"
+
+# What the AI is asked through: any OpenAI-compatible chat completions endpoint and model, with the
+# household's own key (the ai_key secret). The default is DigitalOcean's serverless inference.
+[settings]
+ai_base_url = { type = "string", default = "https://inference.do-ai.run/v1", label = "AI endpoint", help = "An OpenAI-compatible base URL (…/v1). The key is the AI key secret." }
+ai_model = { type = "string", default = "router:general", label = "AI model" }
+ai_hour = { type = "integer", default = 5, min = 0, max = 23, label = "Daily AI run from (hour)", help = "New events are tagged by the AI once a day, at the first sync from this hour; by rules until then." }
+
+# ---------------------------------------------------------------- secrets (contract 6)
+
+[secrets.google]
+kind = "oauth"
+auth = "google"
+multiple = true
+label = "Google Calendar"
+help = "Read-only access to your calendars. Connect each Google account whose calendars you want on the wall."
+
+[secrets.icloud]
+label = "iCloud calendars"
+help = "Your Apple ID and an app-specific password (account.apple.com, Sign-In and Security), as apple-id:password. Not your Apple ID password."
+optional = true
+
+[secrets.ical_url]
+label = "Secret iCal addresses"
+help = "A calendar's secret address in iCal format (Google Calendar: Settings, Integrate calendar), one per line. Anyone with it can read the calendar."
+optional = true
+
+[secrets.ai_key]
+label = "AI key"
+help = "Your key for the AI endpoint in the settings (default: a DigitalOcean model access key). Without one, events are tagged by simple rules."
+optional = true
+
+[auth.google]
+label = "Google"
+authorize_url = "https://accounts.google.com/o/oauth2/v2/auth"
+token_url = "https://oauth2.googleapis.com/token"
+revoke_url = "https://oauth2.googleapis.com/revoke"
+scopes = ["https://www.googleapis.com/auth/calendar.readonly", "openid", "email"]
+pkce = true
+params = { access_type = "offline", prompt = "consent" }
+
+[artifacts.agenda]
+max_kb = 256                     # agenda.json: calsync's agenda shape, ~2 weeks of rows
+
+# ---------------------------------------------------------------- docs (calsync's files)
+
+# {series: {tag, by, why, at}}: the household's tags (by "user"); calsync's AI tags (by "ai") are
+# taken as cached. tags.json in the legacy dashboard.
+[docs.tags]
+max_kb = 256
+writer = "ui"
+on_change = ["sync"]
+
+# {series: "display name"}: the wall's name for a series. names.json.
+[docs.names]
+max_kb = 64
+writer = "ui"
+on_change = ["sync"]
+
+# {cal_key: false}: calendars left off the wall. settings.json's calendars[*].show.
+[docs.shown]
+max_kb = 16
+writer = "ui"
+on_change = ["sync"]
+
+# TODO(S5): the UI, once @slowboard/ui has the secret elements (secrets track S5). Intended:
+#   <sb-connect name="google">            Connect / Connected (accounts, scopes, date) / Disconnect
+#   <sb-secret-field name="icloud">       Apple ID and app-specific password
+#   <sb-secret-field name="ical_url">     secret iCal addresses
+#   <sb-secret-field name="ai_key">       the AI key, next to the ai_base_url / ai_model settings
+#   the calendar picker                   jobs.run("calendars") -> result.accounts[*].calendars, writes docs.shown
+#   the upcoming list with tag buttons    writes docs.tags (by "user") and docs.names; "Tag with AI now"
+#                                         is jobs.run("sync", {ai: true})
+# [ui]
+# entry = "ui/index.html"
+
+# ---------------------------------------------------------------- jobs
+
+[[job]]
+name = "sync"
+kind = "sync"
+every = "15m"
+min_every = "15m"
+network = "egress"
+secrets = ["google", "icloud", "ical_url", "ai_key"]
+args = { ai = "boolean" }       # true: tag new series with the AI now instead of at the daily run
+expected_s = 20
+
+[[job]]
+name = "calendars"
+kind = "sync"
+network = "egress"
+secrets = ["google", "icloud", "ical_url"]
+expected_s = 10
+
+[[job]]
+name = "render"
+inputs = ["self:agenda"]
+expected_s = 3
+
+[[feed]]
+name = "agenda"
+size = "slot"
+
+# ---------------------------------------------------------------- examples
+
+[[example]]
+name = "default"
+caption = "Mon 19 Oct 2026 09:00: two weeks from a Google account, iCloud and an iCal address, AI-tagged"
+fixture = "fixtures/default"
+now = "2026-10-19T09:00:00-07:00"
+feeds = { agenda = "452x444.k4" }
+
+[[example]]
+name = "middle"
+caption = "The same agenda in the middle third, Thursday evening"
+fixture = "fixtures/default"
+now = "2026-10-22T17:30:00-07:00"
+feeds = { agenda = "456x444.k4" }
+
+[[example]]
+name = "empty"
+caption = "Before the first sync: no calendar connected yet"
+fixture = "fixtures/empty"
+now = "2026-10-19T09:00:00-07:00"
+feeds = { agenda = "452x444.k4" }

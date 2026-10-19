@@ -1,0 +1,37 @@
+{
+ "kind": "calendar#events",
+ "summary": "alex@example.com",
+ "timeZone": "America/Vancouver",
+ "items": [
+  {
+   "kind": "calendar#event",
+   "id": "thanks2026",
+   "status": "confirmed",
+   "summary": "Thanksgiving",
+   "start": {
+    "date": "2026-10-12"
+   },
+   "end": {
+    "date": "2026-10-13"
+   },
+   "iCalUID": "thanks2026@google.com",
+   "eventType": "default",
+   "transparency": "transparent"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "hallow2026",
+   "status": "confirmed",
+   "summary": "Halloween",
+   "start": {
+    "date": "2026-10-31"
+   },
+   "end": {
+    "date": "2026-11-01"
+   },
+   "iCalUID": "hallow2026@google.com",
+   "eventType": "default",
+   "transparency": "transparent"
+  }
+ ]
+}

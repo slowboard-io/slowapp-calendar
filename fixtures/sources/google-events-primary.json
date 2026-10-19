@@ -1,0 +1,211 @@
+{
+ "kind": "calendar#events",
+ "summary": "alex@example.com",
+ "timeZone": "America/Vancouver",
+ "items": [
+  {
+   "kind": "calendar#event",
+   "id": "teamsync01_20260921T170000Z",
+   "status": "confirmed",
+   "summary": "Weekly team sync",
+   "start": {
+    "dateTime": "2026-09-21T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-09-21T10:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "teamsync01@google.com",
+   "eventType": "default",
+   "recurringEventId": "teamsync01",
+   "originalStartTime": {
+    "dateTime": "2026-09-21T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   }
+  },
+  {
+   "kind": "calendar#event",
+   "id": "oneonone7_20260924T210000Z",
+   "status": "confirmed",
+   "summary": "1:1 Alex / Priya",
+   "start": {
+    "dateTime": "2026-09-24T14:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-09-24T14:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "oneonone7@google.com",
+   "eventType": "default",
+   "recurringEventId": "oneonone7"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "teamsync01_20260928T170000Z",
+   "status": "confirmed",
+   "summary": "Weekly team sync",
+   "start": {
+    "dateTime": "2026-09-28T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-09-28T10:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "teamsync01@google.com",
+   "eventType": "default",
+   "recurringEventId": "teamsync01",
+   "originalStartTime": {
+    "dateTime": "2026-09-28T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   }
+  },
+  {
+   "kind": "calendar#event",
+   "id": "oneonone7_20261001T210000Z",
+   "status": "confirmed",
+   "summary": "1:1 Alex / Priya",
+   "start": {
+    "dateTime": "2026-10-01T14:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-01T14:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "oneonone7@google.com",
+   "eventType": "default",
+   "recurringEventId": "oneonone7"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "teamsync01_20261005T170000Z",
+   "status": "confirmed",
+   "summary": "Weekly team sync",
+   "start": {
+    "dateTime": "2026-10-05T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-05T10:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "teamsync01@google.com",
+   "eventType": "default",
+   "recurringEventId": "teamsync01",
+   "originalStartTime": {
+    "dateTime": "2026-10-05T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   }
+  },
+  {
+   "kind": "calendar#event",
+   "id": "oneonone7_20261008T210000Z",
+   "status": "confirmed",
+   "summary": "1:1 Alex / Priya",
+   "start": {
+    "dateTime": "2026-10-08T14:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-08T14:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "oneonone7@google.com",
+   "eventType": "default",
+   "recurringEventId": "oneonone7"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "teamsync01_20261012T170000Z",
+   "status": "confirmed",
+   "summary": "Weekly team sync",
+   "start": {
+    "dateTime": "2026-10-12T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-12T10:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "teamsync01@google.com",
+   "eventType": "default",
+   "recurringEventId": "teamsync01",
+   "originalStartTime": {
+    "dateTime": "2026-10-12T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   }
+  },
+  {
+   "kind": "calendar#event",
+   "id": "oneonone7_20261015T210000Z",
+   "status": "confirmed",
+   "summary": "1:1 Alex / Priya",
+   "start": {
+    "dateTime": "2026-10-15T14:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-15T14:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "oneonone7@google.com",
+   "eventType": "default",
+   "recurringEventId": "oneonone7"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "teamsync01_20261019T170000Z",
+   "status": "confirmed",
+   "summary": "Weekly team sync",
+   "start": {
+    "dateTime": "2026-10-19T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-19T10:30:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "teamsync01@google.com",
+   "eventType": "default",
+   "recurringEventId": "teamsync01",
+   "originalStartTime": {
+    "dateTime": "2026-10-19T10:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   }
+  },
+  {
+   "kind": "calendar#event",
+   "id": "dentist2026",
+   "status": "confirmed",
+   "summary": "Dentist",
+   "start": {
+    "dateTime": "2026-10-20T11:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "end": {
+    "dateTime": "2026-10-20T12:00:00-07:00",
+    "timeZone": "America/Vancouver"
+   },
+   "iCalUID": "dentist2026@google.com",
+   "eventType": "default"
+  },
+  {
+   "kind": "calendar#event",
+   "id": "wloc1021",
+   "status": "confirmed",
+   "summary": "Home",
+   "start": {
+    "date": "2026-10-21"
+   },
+   "end": {
+    "date": "2026-10-22"
+   },
+   "iCalUID": "wloc1021@google.com",
+   "eventType": "workingLocation"
+  }
+ ],
+ "nextPageToken": "page2token"
+}
