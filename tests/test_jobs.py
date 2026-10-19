@@ -1,5 +1,5 @@
 """The jobs and the contract 6 adapter (platform.py), with a stand-in for the kit's contract 6
-context, so they run on today's base (1.4.1) as well as on 1.5.0. Render runs on the real kit."""
+context, so they run without the kit too. Render runs on the real kit."""
 import json
 import os
 import shutil

@@ -58,7 +58,7 @@ and repeat counts are sent.
 ## Running the tests
 
     docker run --rm -v "$PWD":/src -w /src --entrypoint python3 \
-      ghcr.io/mike-anderson/slowapp-python:1.4.1 -m unittest discover -s tests
+      ghcr.io/mike-anderson/slowapp-python:1.5.0 -m unittest discover -s tests
 
 After changing a source fixture or the tagging logic, rewrite the render fixture with
 `UPDATE_FIXTURES=1` in the same command (`-e UPDATE_FIXTURES=1`).
