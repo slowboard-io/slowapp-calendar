@@ -121,6 +121,13 @@ expected_s = 3
 name = "agenda"
 size = "slot"
 
+# The whole screen of a 4.7" 16-grey board standing tall (the Slowboard 470): the agenda as a list,
+# the day large at the top, important events inverted, holidays on a grey band.
+[[feed]]
+name = "full"
+size = "540x960"
+inks = ["g16"]
+
 # ---------------------------------------------------------------- examples
 
 [[example]]
@@ -143,3 +150,10 @@ caption = "Before the first sync: no calendar connected yet"
 fixture = "fixtures/empty"
 now = "2026-10-19T09:00:00-07:00"
 feeds = { agenda = "452x444.k4" }
+
+[[example]]
+name = "full"
+caption = "Mon 19 Oct 2026 09:00 on a Slowboard 470: the whole 540x960 greyscale screen"
+fixture = "fixtures/default"
+now = "2026-10-19T09:00:00-07:00"
+feeds = { full = "540x960.g16" }

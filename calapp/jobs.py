@@ -4,14 +4,15 @@
              day, from the cache otherwise), write the `agenda` artifact. A doc's on_change runs it
              too; then it rebuilds from the last fetch without the network or the AI.
   calendars  kind sync, run by the UI: every account's calendars for the picker (result.json).
-  render     no network, no secrets: the `agenda` slot feed from the artifact.
+  render     no network, no secrets: the `agenda` slot feed, and the `full` screen of a Slowboard
+             470 (540x960, g16), from the artifact.
 """
 from datetime import timedelta
 
 import slowapp_kit as kit
 from slowapp_kit import Card, ContractError
 
-from . import draw, platform, sync
+from . import draw, full, platform, sync
 
 
 @kit.job("sync")
@@ -39,11 +40,12 @@ def calendars_job(ctx):
 
 @kit.job("render")
 def render(ctx):
-    surface = ctx.feed("agenda")
-    if surface is None:
-        return
     agenda = platform.read_agenda(ctx)
     t = ctx.for_
-    ctx.write_feed("agenda", [Card(cid, img, title, peek=peek) for cid, img, title, peek in draw.cards(surface, agenda, t)],
-                   valid_from=t, valid_until=max(draw.next_change(agenda, t), t + timedelta(minutes=5)))
+    until = max(draw.next_change(agenda, t), t + timedelta(minutes=5))
+    for name, drawer in (("agenda", draw.cards), ("full", full.cards)):
+        surface = ctx.feed(name)
+        if surface is not None:
+            ctx.write_feed(name, [Card(cid, img, title, peek=peek) for cid, img, title, peek in drawer(surface, agenda, t)],
+                           valid_from=t, valid_until=until)
 

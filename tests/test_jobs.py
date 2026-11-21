@@ -173,7 +173,7 @@ class Render(unittest.TestCase):
         return json.loads((ctx.out / "feeds/agenda/deck.json").read_text())
 
     def test_examples(self):
-        for ex in MANIFEST["example"]:
+        for ex in (e for e in MANIFEST["example"] if "agenda" in e["feeds"]):
             ctx = self.ctx(Path(ex["fixture"]).name, ex["now"], ex["feeds"]["agenda"])
             deck = self.deck(ctx)
             self.assertEqual(deck["cards"][0]["id"], "home", ex["name"])
@@ -195,6 +195,36 @@ class Render(unittest.TestCase):
             for _, img, _, _ in cards:
                 check_inks(img, "k4")
                 self.assertEqual(img.size, (w, 444))
+
+    def test_the_470_screen(self):
+        """The full feed: 540x960 in the sixteen greys, one card, nothing under the board's strip,
+        an important event inverted and a holiday on a band."""
+        from calapp import full
+        agenda = json.loads((ROOT / "fixtures/default/artifacts/agenda/agenda.json").read_text())
+        surface = Surface.from_name("full", "540x960.g16")
+        for now, ag in ((NOW, agenda), (datetime(2026, 10, 22, 17, 30, tzinfo=replay.TZ), agenda), (NOW, None), (NOW, [])):
+            cards = full.cards(surface, ag, now)
+            self.assertEqual([c[0] for c in cards], ["home"])
+            img = cards[0][1]
+            check_inks(img, "g16")
+            self.assertEqual(img.size, (540, 960))
+            self.assertEqual(img.convert("L").crop((0, 900, 540, 960)).getextrema(), (255, 255), now)
+        thu = full.screen(surface, agenda, datetime(2026, 10, 22, 17, 30, tzinfo=replay.TZ)).convert("L")
+        self.assertEqual(thu.getpixel((30, 165)), 0)          # "Pitch night" today: important, inverted
+
+    def test_the_full_example_renders(self):
+        ex = next(e for e in MANIFEST["example"] if e["name"] == "full")
+        tmp = Path(tempfile.mkdtemp())
+        shutil.copytree(ROOT / ex["fixture"], tmp / "data")
+        for d in ("in", "out"):
+            (tmp / d).mkdir()
+        t = datetime.fromisoformat(ex["now"])
+        ctx = Context(app="calendar", job="render", run_id="r_test", reason="fixture", mode="fixture", now=t, for_=t,
+                      deadline=None, tz=replay.TZ, feeds=[Surface.from_name("full", ex["feeds"]["full"])], data=tmp / "data",
+                      out=tmp / "out", inp=tmp / "in", cache=tmp / "cache", secrets_dir=tmp / "secrets", manifest=MANIFEST)
+        jobs.render(ctx)
+        deck = json.loads((ctx.out / "feeds/full/deck.json").read_text())
+        self.assertEqual([c["id"] for c in deck["cards"]], ["home"])
 
     def test_valid_until_is_the_next_end_today(self):
         agenda = json.loads((ROOT / "fixtures/default/artifacts/agenda/agenda.json").read_text())
