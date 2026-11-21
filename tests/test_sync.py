@@ -26,7 +26,7 @@ def docs():
 def fixture_sync(r=None, state=None, d=None, **kw):
     r = r or replay.Replay()
     st = state or sync.State(tempfile.mkdtemp())
-    return sync.run(NOW, replay.sources(r), d or docs(), st, tagger=ai.tagger(r, replay.AI_KEY, replay.AI_BASE), **kw), st, r
+    return sync.run(NOW, replay.sources(r), d or docs(), st, tagger=ai.tagger(r, replay.AI_KEY, "jev", replay.AI_BASE), **kw), st, r
 
 
 class Golden(unittest.TestCase):

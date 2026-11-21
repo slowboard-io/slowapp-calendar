@@ -35,9 +35,23 @@ def _mins(hhmm):
     return h * 60 + m
 
 
+# Titles that always get the same tag, whatever else they say (renderer/events.py's FIXED): bin
+# days. Only a stand-in until the AI, which is told the same, catches the spellings a keyword can't.
+FIXED = ((r"\bgarbage\b|\brecycling\b|\bgreen bin\b|\bcompost\b", "important", "bin day"),)
+
+
+def fixed_tag(title):
+    """-> (tag, reason) for titles that always get the same tag (FIXED), else None."""
+    t = title.lower()
+    return next(((tag, why) for pattern, tag, why in FIXED if re.search(pattern, t)), None)
+
+
 def score(e):
     """-> (score, reason, personal?)"""
     t = e["title"].lower()
+    fixed = fixed_tag(t)
+    if fixed:
+        return (HIGHLIGHT if fixed[0] == "important" else SHOW if fixed[0] == "regular" else SHOW - 1), fixed[1], False
     if re.search(PERSONAL, t):
         return SHOW - 1, "personal (hidden)", True
     s, why = 0, []

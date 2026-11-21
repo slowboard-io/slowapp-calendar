@@ -17,11 +17,14 @@ about = "The next two weeks from your Google accounts, iCloud and any iCal addre
 ink = "red"
 repo = "https://github.com/mike-anderson/slowapp-calendar"
 
-# What the AI is asked through: any OpenAI-compatible chat completions endpoint and model, with the
-# household's own key (the ai_key secret). The default is DigitalOcean's serverless inference.
+# What the AI is asked through: a decision model (shared context and choice questions in, calibrated
+# probabilities out), with the household's own key (the ai_key secret). Jev is TypeSafe's on
+# DigitalOcean's System One API; gemini is Google's decisions API. Endpoint and model default to the
+# provider's.
 [settings]
-ai_base_url = { type = "string", default = "https://inference.do-ai.run/v1", label = "AI endpoint", help = "An OpenAI-compatible base URL (…/v1). The key is the AI key secret." }
-ai_model = { type = "string", default = "router:general", label = "AI model" }
+ai_provider = { type = "string", default = "jev", label = "AI provider", help = "jev (DigitalOcean System One) or gemini (Google). The key is the AI key secret." }
+ai_base_url = { type = "string", default = "", label = "AI endpoint", help = "Leave empty for the provider's own." }
+ai_model = { type = "string", default = "", label = "AI model", help = "Leave empty for the provider's: typesafe-jev-1.13.0 or gemini-decision-1." }
 ai_hour = { type = "integer", default = 5, min = 0, max = 23, label = "Daily AI run from (hour)", help = "New events are tagged by the AI once a day, at the first sync from this hour; by rules until then." }
 
 # ---------------------------------------------------------------- secrets (contract 6)
@@ -46,7 +49,7 @@ optional = true
 
 [secrets.ai_key]
 label = "AI key"
-help = "Your key for the AI endpoint in the settings (default: a DigitalOcean model access key). Without one, events are tagged by simple rules."
+help = "Your key for the AI provider in the settings (jev: a DigitalOcean model access key; gemini: a Gemini API key). Without one, events are tagged by simple rules."
 optional = true
 
 [auth.google]

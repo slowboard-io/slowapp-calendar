@@ -82,7 +82,7 @@ class Replay:
             if "ical" in self.fail:
                 raise HTTPError(500, url, "")
             return Response(200, url, (SOURCES / "ical-family.ics").read_bytes())
-        if url == AI_BASE + "/chat/completions":
+        if url == AI_BASE + "/systemone":
             if "ai" in self.fail:
                 raise HTTPError(503, url, "busy")
             assert headers.get("Authorization") == f"Bearer {AI_KEY}"
@@ -126,17 +126,18 @@ class Replay:
     # ---------------------------------------------------------------- AI
 
     def ai(self, req):
-        prompt = req["messages"][0]["content"]
-        data = json.loads(prompt.split("DATA:\n", 1)[1])
-        by_id = {s["id"]: s for s in data["month"]}
-        reply = {}
-        for sid in data["tag_these"]:
-            title = by_id[sid]["title"]
+        """A decision model: the month as state, a choice question per series; answers with
+        probabilities for the titles it knows."""
+        by_id = {s["id"]: s for s in req["state"]["month"]}
+        answers = {}
+        for qid, q in req["questions"].items():
+            assert q["type"] == "choice" and set(q["criteria"]) == {"hidden", "regular", "important"}
+            title = by_id[qid]["title"]
             if title in self.ai_tags:
-                tag, why = self.ai_tags[title]
-                reply[sid] = {"tag": tag, "why": why}
-        body = {"model": "fixture-model", "usage": {"prompt_tokens": 1000, "completion_tokens": 100},
-                "choices": [{"message": {"role": "assistant", "content": json.dumps(reply)}}]}
+                tag = self.ai_tags[title][0]
+                answers[qid] = {"choice": tag, "confidence": 0.9,
+                                "probabilities": {t: (0.8 if t == tag else 0.1) for t in ("hidden", "regular", "important")}}
+        body = {"model": req["model"], "usage": {"input_tokens": 1000}, "answers": answers}
         return Response(200, AI_BASE, json.dumps(body).encode())
 
     def ai_calls(self):

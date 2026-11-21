@@ -80,7 +80,8 @@ def tagger(ctx, req):
     if not key:
         return None
     s = ctx.settings
-    return ai.tagger(req, key.strip(), s.get("ai_base_url") or ai.DEFAULT_BASE_URL, s.get("ai_model") or ai.DEFAULT_MODEL)
+    return ai.tagger(req, key.strip(), s.get("ai_provider") or ai.DEFAULT_PROVIDER, s.get("ai_base_url") or None,
+                     s.get("ai_model") or None)
 
 
 def docs(ctx):

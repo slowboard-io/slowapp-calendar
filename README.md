@@ -13,7 +13,7 @@ on the slim `slowapp-python` base.
 |---|---|---|
 | `sync` | sync, every 15 min (`min_every` 15 min) | Fetches every connected account, tags new series, writes `/out/artifacts/agenda/agenda.json`. Secrets `google` (OAuth, several accounts), `icloud`, `ical_url`, `ai_key`, all optional; with none of the first three it exits 5 (needs config). `args.ai = true` is "Tag with AI now". A doc's `on_change` runs it too; then it rebuilds from the last fetch without the network or the AI. |
 | `calendars` | sync, on demand | Every account's calendars for the UI's picker, as `result.json`. |
-| `render` | render | The `agenda` slot feed from `/in/artifacts/agenda/`: a home card, and a "later" card when the rows run over. |
+| `render` | render | The `agenda` slot feed from `/in/artifacts/agenda/`: a home card, and a "later" card when the rows run over; and the `full` 540x960 g16 screen for a Slowboard 470. |
 
 `agenda.json` keeps calsync's shape (`date`, `title`, `start`, `end`, `cal` = `holiday` or
 `calendar`, `reps`, `tag`), which the legacy renderer and the weather app's `calendar:agenda`
@@ -26,8 +26,11 @@ secrets waits for the secret elements (S5); see the TODO in `slowapp.toml`.
 
 ## The AI
 
-Any OpenAI-compatible chat completions endpoint (`ai_base_url`, `ai_model`; default DigitalOcean's
-`https://inference.do-ai.run/v1` and `router:general`) with the household's key. A series is asked
+A decision model with the household's key (`ai_provider`: `jev`, TypeSafe's Jev
+(`typesafe-jev-1.13.0`) on DigitalOcean's System One API, the default; or `gemini`, Google's
+decisions API). The month goes in as shared context and each series is one choice question over the
+three tags, answered with calibrated probabilities, so a reply can only be a tag; the probability is
+kept as the tag's "why". `ai_base_url` and `ai_model` override the provider's. A series is asked
 about once: its tag is cached in `/data/ai_cache.json` under a hash of what the AI was shown
 (series, title, calendar, start time, repeating), so a sync with nothing new makes no AI call. New
 series are sent at the first sync from `ai_hour` (05:00) each day, or on "Tag with AI now"; until
@@ -49,6 +52,7 @@ and repeat counts are sent.
 | `calapp/agenda.py` | Tags, names and shown calendars applied: the agenda rows |
 | `calapp/sync.py` | One sync and its `/data` state; the calendar picker's list |
 | `calapp/draw.py` | The agenda card in the four inks |
+| `calapp/full.py` | The Slowboard 470's whole screen (`full`, 540x960 in 16 greys) |
 | `calapp/platform.py` | Everything contract 6: tokens, secrets, the artifact, docs, the deadline-aware client |
 | `calapp/jobs.py`, `__main__.py` | The three jobs and the entrypoint |
 | `fixtures/sources/` | Saved Google responses, CalDAV responses, an iCloud `.ics` and an iCal address's `.ics`, and the docs |

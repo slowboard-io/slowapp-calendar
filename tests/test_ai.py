@@ -11,7 +11,7 @@ NOW = datetime.fromisoformat(replay.NOW).astimezone(replay.TZ)
 
 
 def run(r, state, now=NOW, docs=None, key=replay.AI_KEY, **kw):
-    tagger = ai.tagger(r, key, replay.AI_BASE) if key else None
+    tagger = ai.tagger(r, key, "jev", replay.AI_BASE) if key else None
     return sync.run(now, replay.sources(r), docs or sync.Docs(), state, tagger=tagger, **kw)
 
 
@@ -56,10 +56,10 @@ class Cache(unittest.TestCase):
             def fetch(self, t0, t1, tz):
                 return {}, ev[self.id]
         res = sync.run(NOW, [Stale(s) for s in replay.sources(r)], sync.Docs(), st,
-                       tagger=ai.tagger(r, replay.AI_KEY, replay.AI_BASE), force_ai=True)
+                       tagger=ai.tagger(r, replay.AI_KEY, "jev", replay.AI_BASE), force_ai=True)
         self.assertEqual(len(r.ai_calls()), 1)
-        sent = json.loads(json.loads(r.ai_calls()[0]["body"])["messages"][0]["content"].split("DATA:\n", 1)[1])
-        asked = [s["title"] for s in sent["month"] if s["id"] in sent["tag_these"]]
+        sent = json.loads(r.ai_calls()[0]["body"])
+        asked = [s["title"] for s in sent["state"]["month"] if s["id"] in sent["questions"]]
         self.assertEqual(asked, ["Coffee with Sam and Jo"])
         self.assertEqual(res.report["got"], 1)
 
@@ -103,8 +103,8 @@ class Cache(unittest.TestCase):
         r = replay.Replay()
         st = self.state()
         res = run(r, st, docs=docs)
-        sent = json.loads(json.loads(r.ai_calls()[0]["body"])["messages"][0]["content"].split("DATA:\n", 1)[1])
-        asked = {s["title"] for s in sent["month"] if s["id"] in sent["tag_these"]}
+        sent = json.loads(r.ai_calls()[0]["body"])
+        asked = {s["title"] for s in sent["state"]["month"] if s["id"] in sent["questions"]}
         self.assertNotIn("Weekly team sync", asked)              # the household's tag wins
         self.assertNotIn("Dentist", asked)                       # calsync's AI tag seeds the cache
         self.assertIn("Coffee with Sam", asked)                  # a rules tag is only for now
@@ -116,22 +116,49 @@ class Cache(unittest.TestCase):
         run(r, self.state())
         call = r.ai_calls()[0]
         body = json.loads(call["body"])
-        self.assertEqual(body["model"], "router:general")
-        prompt = body["messages"][0]["content"]
+        self.assertEqual(body["model"], "typesafe-jev-1.13.0")
+        self.assertEqual({q["type"] for q in body["questions"].values()}, {"choice"})
         for private in ("Sam's place", "Bring lunch", "sales@vendor.example", replay.ICAL_URL, replay.GOOGLE_TOKEN):
-            self.assertNotIn(private, prompt)
+            self.assertNotIn(private, call["body"].decode())
 
     def test_reply_is_checked(self):
         short = {"s0": "a|x", "s1": "a|y"}
-        got = ai.parse_reply('Sure! {"s0": {"tag": "important", "why": "<b>big</b>"}, "s1": {"tag": "delete"},'
-                             ' "s9": {"tag": "hidden"}}', ["s0", "s1"], short)
-        self.assertEqual(got, {"a|x": ("important", "bbig/b")})
+        qs = {"s0": {}, "s1": {}}
+        got = ai.parse_answers({"answers": {
+            "s0": {"choice": "important", "confidence": 0.82, "probabilities": {"important": 0.91}},
+            "s1": {"choice": "delete"}, "s9": {"choice": "hidden"}}}, qs, short)
+        self.assertEqual(got, {"a|x": ("important", "91% important, confidence 0.82")})
         with self.assertRaises(ai.AIError):
-            ai.parse_reply("no", ["s0"], short)
+            ai.parse_answers({"choices": []}, qs, short)
+
+    def test_gemini_takes_the_month_as_text_and_its_own_header(self):
+        seen = {}
+
+        class Resp:
+            def json(self):
+                return {"answers": {}}
+
+        def req(method, url, body, headers, timeout):
+            seen.update(url=url, body=json.loads(body), headers=headers)
+            return Resp()
+        summary = {"a|x": dict(id="s0", title="Recycling", calendar="", weekdays=["Tue"], time="all day",
+                               minutes=None, times_in_window=2, weekly=True, dates=["2026-10-20"])}
+        ai.tagger(req, "k", "gemini")(["a|x"], summary)
+        self.assertEqual(seen["url"], "https://generativelanguage.googleapis.com/v1beta/decisions")
+        self.assertEqual(seen["headers"]["x-goog-api-key"], "k")
+        self.assertIsInstance(seen["body"]["input"], str)
+        self.assertEqual(seen["body"]["model"], "gemini-decision-1")
+
+    def test_bin_days_are_important_by_rules_too(self):
+        from calapp import rules
+        for t in ("Garbage + recycling", "Green bin pickup", "Compost"):
+            self.assertEqual(rules.rules_tag(dict(title=t, start=None, end=None), 4), ("important", "bin day"))
+        self.assertEqual(rules.fixed_tag("Recyclingworks AGM"), None)
 
     def test_endpoint_and_prune(self):
-        self.assertEqual(ai.chat_url("https://api.example.com/v1/"), "https://api.example.com/v1/chat/completions")
-        self.assertEqual(ai.chat_url("https://x/v1/chat/completions"), "https://x/v1/chat/completions")
+        self.assertEqual(ai.endpoint("jev"), "https://inference.do-ai.run/v1/systemone")
+        self.assertEqual(ai.endpoint("jev", "https://proxy.example/v1/"), "https://proxy.example/v1/systemone")
+        self.assertEqual(ai.endpoint("nonsense"), "https://inference.do-ai.run/v1/systemone")
         cache = {"old": dict(tag="hidden", seen="2026-01-01"), "new": dict(tag="hidden", seen="2026-10-01")}
         self.assertEqual(list(ai.prune(cache, NOW.date())), ["new"])
 
