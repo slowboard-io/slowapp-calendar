@@ -6,7 +6,7 @@
 id = "calendar"
 title = "Calendar"
 contract = 6
-image = "ghcr.io/mike-anderson/slowapp-calendar"
+image = "ghcr.io/slowboard-io/slowapp-calendar"
 memory = "64m"
 tmp = "8m"
 timeout_s = 120
@@ -15,7 +15,7 @@ data = { max_mb = 4 }            # sync's state: the last good fetch per account
 blurb = "Your Google and iCloud calendars, with only what matters on the wall."
 about = "The next two weeks from your Google accounts, iCloud and any iCal address, sorted by your own AI key into hidden, regular and important: weekly work meetings and private appointments stay off the wall, occasions and trips are in red. Set any event yourself and the AI leaves it alone."
 ink = "red"
-repo = "https://github.com/mike-anderson/slowapp-calendar"
+repo = "https://github.com/slowboard-io/slowapp-calendar"
 
 # What the AI is asked through: a decision model (shared context and choice questions in, calibrated
 # probabilities out), with the household's own key (the ai_key secret). Jev is TypeSafe's on
@@ -85,16 +85,13 @@ max_kb = 16
 writer = "ui"
 on_change = ["sync"]
 
-# TODO(S5): the UI, once @slowboard/ui has the secret elements (secrets track S5). Intended:
-#   <sb-connect name="google">            Connect / Connected (accounts, scopes, date) / Disconnect
-#   <sb-secret-field name="icloud">       Apple ID and app-specific password
-#   <sb-secret-field name="ical_url">     secret iCal addresses
-#   <sb-secret-field name="ai_key">       the AI key, next to the ai_base_url / ai_model settings
-#   the calendar picker                   jobs.run("calendars") -> result.accounts[*].calendars, writes docs.shown
-#   the upcoming list with tag buttons    writes docs.tags (by "user") and docs.names; "Tag with AI now"
-#                                         is jobs.run("sync", {ai: true})
-# [ui]
-# entry = "ui/index.html"
+# The page: connect calendars and the AI key (value secrets through the bridge's secrets.set, sealed
+# on the hub), the AI provider, and Sync now. Google's sign-in (<sb-connect>, the bridge's
+# secrets.connect) waits for the hub's OAuth (secrets track S4, S5); a Google calendar's secret
+# iCal address works meanwhile. Still to come: the calendar picker (docs.shown) and the
+# upcoming list with tag buttons (docs.tags, docs.names).
+[ui]
+entry = "/ui/index.html"
 
 # ---------------------------------------------------------------- jobs
 

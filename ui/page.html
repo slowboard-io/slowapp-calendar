@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendar</title>
+<style>
+  /* The hub's tokens arrive with applyTheme(); these are the fallbacks for a first paint. */
+  :root { --paper: #fff; --text: #111; --muted: #666; --keyline: #ddd; --solid: #111; --on-solid: #fff; --s0: 8px; --s1: 16px; }
+  :root[data-theme="dark"] { --paper: #161616; --text: #eee; --muted: #999; --keyline: #333; --solid: #eee; --on-solid: #111; }
+  body { margin: 0; padding: var(--s1); background: var(--paper); color: var(--text); font: 16px/1.4 system-ui, sans-serif; }
+  h1 { font-size: 1.5rem; margin: 0 0 var(--s1); }
+  h2 { font-size: 1.1rem; margin: 0; }
+  section { border: 1px solid var(--keyline); border-radius: 8px; padding: var(--s1); margin-bottom: var(--s1); display: grid; gap: var(--s0); }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s0); flex-wrap: wrap; }
+  .state { color: var(--muted); font-size: .9rem; }
+  .state.on { color: var(--text); font-weight: 600; }
+  .hint { color: var(--muted); font-size: .9rem; margin: 0; }
+  .row { display: flex; flex-wrap: wrap; gap: var(--s0); align-items: center; }
+  input, textarea, select { font: inherit; padding: 6px 8px; border: 1px solid var(--keyline); border-radius: 6px; background: var(--paper); color: var(--text); }
+  input { flex: 1; min-width: 14ch; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 4.5em; }
+  button { font: inherit; padding: 6px 12px; border: 1px solid var(--keyline); border-radius: 6px; background: var(--paper); color: var(--text); cursor: pointer; }
+  button.solid { background: var(--solid); color: var(--on-solid); border-color: var(--solid); }
+  button:disabled { opacity: .5; cursor: default; }
+  #status { min-height: 1.4em; }
+</style>
+</head>
+<body>
+<h1>Calendar</h1>
+<p class="hint">The next two weeks on the wall. Connect at least one calendar below; values you save are sealed on the hub and never shown again.</p>
+
+<section>
+  <div class="head"><h2>Google Calendar</h2><span class="state" data-state="google"></span></div>
+  <p class="hint">Signing in with Google isn't on this hub yet. Meanwhile, a Google calendar's secret iCal address works below.</p>
+</section>
+
+<section>
+  <div class="head"><h2>iCloud calendars</h2><span class="state" data-state="icloud"></span></div>
+  <p class="hint">Your Apple ID and an app-specific password (account.apple.com → Sign-In and Security → App-Specific Passwords). Not your Apple ID password.</p>
+  <div class="row">
+    <input id="icloud-id" type="email" autocomplete="off" placeholder="Apple ID">
+    <input id="icloud-pw" type="password" autocomplete="off" placeholder="app-specific password">
+  </div>
+  <div class="row"><button class="solid" data-save="icloud">Save</button><button data-clear="icloud">Remove</button></div>
+</section>
+
+<section>
+  <div class="head"><h2>Secret iCal addresses</h2><span class="state" data-state="ical_url"></span></div>
+  <p class="hint">One per line (Google Calendar: Settings → your calendar → Integrate calendar → Secret address in iCal format). Anyone with one can read that calendar.</p>
+  <textarea id="ical" autocomplete="off" spellcheck="false" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics"></textarea>
+  <div class="row"><button class="solid" data-save="ical_url">Save</button><button data-clear="ical_url">Remove</button></div>
+</section>
+
+<section>
+  <div class="head"><h2>AI key</h2><span class="state" data-state="ai_key"></span></div>
+  <p class="hint">Sorts events into hidden, regular and important once a day. Without one, simple rules do it.</p>
+  <div class="row">
+    <select id="provider" aria-label="AI provider">
+      <option value="jev">Jev (DigitalOcean model access key)</option>
+      <option value="gemini">Gemini (Gemini API key)</option>
+    </select>
+    <input id="ai" type="password" autocomplete="off" placeholder="key">
+  </div>
+  <div class="row"><button class="solid" data-save="ai_key">Save</button><button data-clear="ai_key">Remove</button></div>
+</section>
+
+<section>
+  <div class="row">
+    <button id="sync" class="solid">Sync now</button>
+    <button id="tag">Tag new events with AI now</button>
+  </div>
+  <p class="hint" id="status" role="status"></p>
+</section>
+
+<script type="module">
+/*@bridge*/
+
+const $ = (id) => document.getElementById(id);
+let app;
+const say = (t) => { $("status").textContent = t; };
+
+function when(ms) {
+  if (!ms) return "";
+  const d = new Date(typeof ms === "number" ? ms : Date.parse(ms));
+  return isNaN(d) ? "" : d.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+}
+
+async function refresh() {
+  const list = await app.secrets.status();
+  for (const s of list || []) {
+    const el = document.querySelector(`[data-state="${s.name}"]`);
+    if (!el) continue;
+    const used = s.last_used ? ` · last used ${when(s.last_used)}` : "";
+    el.textContent = s.set ? `Set${used}` : "Not set";
+    el.classList.toggle("on", !!s.set);
+  }
+}
+
+function valueOf(name) {
+  if (name === "icloud") {
+    const id = $("icloud-id").value.trim(), pw = $("icloud-pw").value.trim();
+    if (!id || !pw) throw new Error("Both the Apple ID and the app-specific password, please.");
+    return `${id}:${pw}`;
+  }
+  if (name === "ical_url") {
+    const lines = $("ical").value.split(/\s+/).map((l) => l.trim()).filter(Boolean);
+    if (!lines.length || lines.some((l) => !/^(https?|webcal):\/\//.test(l))) throw new Error("Each line should be an https:// or webcal:// address.");
+    return lines.join("\n");
+  }
+  if (name === "ai_key") {
+    const k = $("ai").value.trim();
+    if (!k) throw new Error("Paste the key first.");
+    return k;
+  }
+  throw new Error(name);
+}
+
+function clearInputs(name) {
+  if (name === "icloud") { $("icloud-id").value = ""; $("icloud-pw").value = ""; }
+  if (name === "ical_url") $("ical").value = "";
+  if (name === "ai_key") $("ai").value = "";
+}
+
+document.addEventListener("click", async (e) => {
+  const save = e.target.closest("[data-save]")?.dataset.save;
+  const clear = e.target.closest("[data-clear]")?.dataset.clear;
+  if (!save && !clear) return;
+  e.target.disabled = true;
+  try {
+    if (save) {
+      if (save === "ai_key") await app.settings.set({ ...(await app.settings.get()), ai_provider: $("provider").value });
+      await app.secrets.set(save, valueOf(save));
+      clearInputs(save);
+      say("Saved. Sync now to see it on the wall.");
+    } else {
+      await app.secrets.clear(clear);
+      say("Removed.");
+    }
+    await refresh();
+  } catch (err) {
+    say(err.message);
+  } finally {
+    e.target.disabled = false;
+  }
+});
+
+async function run(args) {
+  say("Syncing…");
+  try {
+    const r = await app.jobs.run("sync", args);
+    say(r?.outcome === "needs_config" ? "Connect a calendar first." : "Synced. The board redraws on its next check-in.");
+  } catch (err) {
+    say(err.message);
+  }
+  await refresh();
+}
+$("sync").addEventListener("click", () => run({}));
+$("tag").addEventListener("click", () => run({ ai: true }));
+
+app = await connect();
+app.applyTheme();
+app.ui.autoResize?.();
+const s = await app.settings.get().catch(() => ({}));
+if (s?.ai_provider) $("provider").value = s.ai_provider;
+await refresh();
+</script>
+</body>
+</html>
