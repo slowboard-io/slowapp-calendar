@@ -24,15 +24,47 @@
   button.solid { background: var(--solid); color: var(--on-solid); border-color: var(--solid); }
   button:disabled { opacity: .5; cursor: default; }
   #status { min-height: 1.4em; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  .accounts li { display: flex; justify-content: space-between; align-items: center; gap: var(--s0); padding: 6px 0; border-bottom: 1px solid var(--keyline); flex-wrap: wrap; }
+  .accounts li:last-child { border-bottom: 0; }
+  .accounts small, .wall small { color: var(--muted); }
+  .wall li { display: grid; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--keyline); }
+  .wall li:last-child { border-bottom: 0; }
+  .wall .what { display: flex; justify-content: space-between; gap: var(--s0); align-items: baseline; }
+  .wall .title { font-weight: 600; overflow-wrap: anywhere; }
+  .wall .when { color: var(--muted); font-size: .9rem; white-space: nowrap; }
+  .wall li.hidden .title { color: var(--muted); text-decoration: line-through; }
+  .wall li.important .title::before { content: "● "; }
+  .seg { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .seg button { padding: 4px 10px; font-size: .9rem; }
+  .seg button[aria-pressed="true"] { background: var(--solid); color: var(--on-solid); border-color: var(--solid); }
+  .seg .auto { margin-left: auto; }
+  .who { font-size: .8rem; color: var(--muted); }
+  .who.mine { color: var(--text); font-weight: 600; }
+  .filters { display: flex; gap: var(--s0); flex-wrap: wrap; align-items: center; }
 </style>
 </head>
 <body>
 <h1>Calendar</h1>
 <p class="hint">The next two weeks on the wall. Connect at least one calendar below; values you save are sealed on the hub and never shown again.</p>
 
+<section class="wall" aria-labelledby="wall-h">
+  <div class="head"><h2 id="wall-h">What's on the wall</h2><small id="wall-at"></small></div>
+  <p class="hint">Every event coming up, and how the wall shows it. Pick Hidden, Regular or Important to decide yourself; Auto hands it back to the AI (or the rules). Bin days are important unless you say otherwise.</p>
+  <div class="filters">
+    <input id="wall-find" type="search" placeholder="Find an event" aria-label="Find an event">
+    <label><input id="wall-mine" type="checkbox"> Only my choices</label>
+  </div>
+  <ul id="wall"></ul>
+  <p class="hint" id="wall-empty" hidden>Nothing yet: connect a calendar and Sync now.</p>
+</section>
+
 <section>
   <div class="head"><h2>Google Calendar</h2><span class="state" data-state="google"></span></div>
-  <p class="hint">Signing in with Google isn't on this hub yet. Meanwhile, a Google calendar's secret iCal address works below.</p>
+  <p class="hint">Read-only access to your calendars. Connect each Google account whose calendars you want on the wall.</p>
+  <ul class="accounts" id="google-accounts"></ul>
+  <div class="row"><button class="solid" id="google-connect">Connect a Google account</button></div>
+  <p class="hint" id="google-hint" hidden></p>
 </section>
 
 <section>
@@ -92,10 +124,142 @@ async function refresh() {
     const el = document.querySelector(`[data-state="${s.name}"]`);
     if (!el) continue;
     const used = s.last_used ? ` · last used ${when(s.last_used)}` : "";
-    el.textContent = s.set ? `Set${used}` : "Not set";
-    el.classList.toggle("on", !!s.set);
+    if (s.kind === "oauth") {
+      const n = (s.accounts || []).length;
+      el.textContent = n ? `${n} connected` : "Not connected";
+      el.classList.toggle("on", n > 0);
+      if (s.name === "google") renderAccounts(s.accounts || []);
+    } else {
+      el.textContent = s.set ? `Set${used}` : "Not set";
+      el.classList.toggle("on", !!s.set);
+    }
   }
 }
+
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") e.className = v;
+    else if (k === "dataset") Object.assign(e.dataset, v);
+    else if (k in e) e[k] = v;
+    else e.setAttribute(k, v);
+  }
+  for (const c of kids) if (c != null) e.append(c);
+  return e;
+}
+
+function renderAccounts(accounts) {
+  const ul = $("google-accounts");
+  ul.replaceChildren(...accounts.map((a) => {
+    const who = a.email || a.account;
+    const bits = [a.granted_at && `connected ${when(a.granted_at)}`, a.last_used && `last used ${when(a.last_used)}`].filter(Boolean).join(" · ");
+    return el("li", {}, el("span", {}, el("strong", { textContent: who }), " ", el("small", { textContent: bits })),
+      el("button", { textContent: "Disconnect", dataset: { disconnect: a.account } }));
+  }));
+}
+
+$("google-connect").addEventListener("click", async (e) => {
+  e.target.disabled = true;
+  $("google-hint").hidden = true;
+  try {
+    await app.secrets.connect("google");
+    say("Finish signing in with Google in the window that opened.");
+  } catch (err) {
+    const h = $("google-hint");
+    h.hidden = false;
+    h.textContent = err.code === "unknown_call" || err.code === "kind"
+      ? "This hub can't sign in with Google yet. A Google calendar's secret iCal address works below meanwhile."
+      : err.message;
+  } finally {
+    e.target.disabled = false;
+  }
+});
+
+$("google-accounts").addEventListener("click", async (e) => {
+  const account = e.target.closest("[data-disconnect]")?.dataset.disconnect;
+  if (!account) return;
+  e.target.disabled = true;
+  try {
+    await app.secrets.clear("google", account);
+    say("Disconnected. Its calendars leave the wall at the next sync.");
+    await refresh();
+  } catch (err) {
+    say(err.message);
+    e.target.disabled = false;
+  }
+});
+
+// ---------------------------------------------------------------- what's on the wall
+
+const TAGS = [["hidden", "Hidden"], ["regular", "Regular"], ["important", "Important"]];
+const WHO = { user: "your choice", fixed: "always", ai: "AI", rules: "rules", pending: "automatic from the next sync" };
+let upcoming = { series: {} }, tags = { rev: 0, value: {} };
+
+function nextText(next) {
+  const [d, t] = String(next || "").split("T");
+  const [y, m, day] = d.split("-").map(Number);
+  if (!y) return "";
+  const date = new Date(y, m - 1, day);
+  const s = date.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+  return t ? `${s} ${t}` : s;
+}
+
+function renderWall() {
+  const find = $("wall-find").value.trim().toLowerCase();
+  const mine = $("wall-mine").checked;
+  const rows = Object.entries(upcoming.series || {})
+    .map(([sid, v]) => {
+      const u = tags.value?.[sid];
+      const own = u && (u.by ?? "user") === "user" && TAGS.some(([t]) => t === u.tag);
+      // The page's own write wins until the next sync folds it into the doc.
+      return { sid, ...v, tag: own ? u.tag : v.tag, by: own ? "user" : (v.by === "user" ? "pending" : v.by), why: own ? (u.why || v.why) : v.why };
+    })
+    .filter((r) => (!find || `${r.title} ${r.calendar}`.toLowerCase().includes(find)) && (!mine || r.by === "user"))
+    .sort((a, b) => String(a.next).localeCompare(String(b.next)));
+  $("wall-empty").hidden = Object.keys(upcoming.series || {}).length > 0;
+  $("wall-at").textContent = upcoming.at ? `as of ${when(upcoming.at)}` : "";
+  $("wall").replaceChildren(...rows.map((r) => {
+    const seg = el("div", { class: "seg", role: "group", "aria-label": `How ${r.title} shows` },
+      ...TAGS.map(([t, label]) => el("button", { textContent: label, "aria-pressed": String(r.tag === t), dataset: { sid: r.sid, tag: t } })),
+      el("button", { class: "auto", textContent: "Auto", disabled: r.by !== "user", title: "Let the AI or the rules decide", dataset: { sid: r.sid, tag: "" } }));
+    const who = el("span", { class: `who${r.by === "user" ? " mine" : ""}`, textContent: `${WHO[r.by] || r.by}${r.why && r.by !== "user" && r.by !== "pending" ? ` · ${r.why}` : ""}`, title: r.why || "" });
+    const meta = [r.calendar, r.count > 1 ? `${r.count}× in the next two weeks` : null].filter(Boolean).join(" · ");
+    return el("li", { class: r.tag },
+      el("div", { class: "what" }, el("span", { class: "title", textContent: r.title }), el("span", { class: "when", textContent: nextText(r.next) })),
+      el("small", { textContent: meta }), seg, who);
+  }));
+}
+
+async function setTag(sid, tag) {
+  const apply = (value) => {
+    const v = { ...(value || {}) };
+    if (tag) v[sid] = { tag, by: "user", why: "set on the page", at: new Date().toISOString().slice(0, 10) };
+    else delete v[sid];
+    return v;
+  };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const value = apply(tags.value);
+    try {
+      const r = await app.docs.put("tags", value, tags.rev);
+      tags = { rev: r?.rev ?? tags.rev + 1, value };
+      renderWall();
+      say(tag ? "Saved. The wall redraws in a moment." : "Back to automatic. The wall redraws in a moment.");
+      return;
+    } catch (err) {
+      if (err.code !== "conflict") { say(err.message); return; }
+      tags = { rev: err.rev, value: err.value || {} };   // changed elsewhere: apply this one change on top
+    }
+  }
+  say("Couldn't save: the tags keep changing elsewhere. Try again.");
+}
+
+$("wall").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-sid]");
+  if (!b || b.disabled) return;
+  setTag(b.dataset.sid, b.dataset.tag);
+});
+$("wall-find").addEventListener("input", renderWall);
+$("wall-mine").addEventListener("change", renderWall);
 
 function valueOf(name) {
   if (name === "icloud") {
@@ -164,6 +328,13 @@ app.ui.autoResize?.();
 const s = await app.settings.get().catch(() => ({}));
 if (s?.ai_provider) $("provider").value = s.ai_provider;
 await refresh();
+app.secrets.watch?.(() => refresh());
+const [u0, t0] = await Promise.all([app.docs.get("upcoming"), app.docs.get("tags")]);
+upcoming = u0.value || { series: {} };
+tags = { rev: t0.rev, value: t0.value || {} };
+renderWall();
+app.docs.watch("upcoming", (m) => { upcoming = m.value || { series: {} }; renderWall(); });
+app.docs.watch("tags", (m) => { tags = { rev: m.rev, value: m.value || {} }; renderWall(); });
 </script>
 </body>
 </html>

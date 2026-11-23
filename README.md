@@ -21,8 +21,16 @@ import read.
 
 The docs are calsync's files: `tags` (series → `{tag, by, why, at}`; the household's tags win, and
 calsync's AI tags are taken as cached), `names` (series → display name) and `shown`
-(calendar key → `false` to leave it off). A UI to edit them, connect Google and set the other
-secrets waits for the secret elements (S5); see the TODO in `slowapp.toml`.
+(calendar key → `false` to leave it off). The sync job writes one doc back, `upcoming` (every
+upcoming series with its title, calendar, next date, count and tag, and who set it: `user`,
+`fixed` for bin days, `ai` or `rules`), for the page.
+
+The page (`ui/page.html`, the bridge vendored from slowapp-base and inlined at build by
+`tools/build_ui.py`) lists **What's on the wall**: each series with Hidden / Regular / Important
+and Auto, written to `tags` as the household's choice (its `on_change` re-syncs without fetching).
+It connects Google accounts (bridge protocol 2, `secrets.connect`), sets the iCloud, iCal address
+and AI key secrets, and has Sync now and Tag with AI now. Still to come: the calendar picker
+(`shown`) and renaming a series (`names`).
 
 ## The AI
 
@@ -55,9 +63,18 @@ and repeat counts are sent.
 | `calapp/full.py` | The Slowboard 470's whole screen (`full`, 540x960 in 16 greys) |
 | `calapp/platform.py` | Everything contract 6: tokens, secrets, the artifact, docs, the deadline-aware client |
 | `calapp/jobs.py`, `__main__.py` | The three jobs and the entrypoint |
+| `ui/page.html`, `ui/bridge.js`, `tools/build_ui.py` | The page, the vendored bridge, and the build step that inlines one into the other |
 | `fixtures/sources/` | Saved Google responses, CalDAV responses, an iCloud `.ics` and an iCal address's `.ics`, and the docs |
 | `fixtures/default/artifacts/agenda/` | The sync of those at the default example's time: what the examples render |
 | `tests/` | Unit tests, run in the base image; `tests/replay.py` answers requests from `fixtures/sources/` |
+
+## Building
+
+    TAG=0.2.0 docker buildx bake --push
+
+`docker-bake.hcl` builds for amd64 and arm64 and puts `org.opencontainers.image.source` on the
+multi-arch index too, which is where GitHub looks to connect the package to this repo. The
+manifest has no version key: the image tag is the release.
 
 ## Running the tests
 

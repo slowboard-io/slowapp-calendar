@@ -2,7 +2,8 @@
 
   sync       kind sync, every 15 min: fetch every connected account, tag new series (AI once a
              day, from the cache otherwise), write the `agenda` artifact. A doc's on_change runs it
-             too; then it rebuilds from the last fetch without the network or the AI.
+             too; then it rebuilds from the last fetch without the network or the AI. Both write
+             the `upcoming` doc (the page's list of series and their tags) when it changed.
   calendars  kind sync, run by the UI: every account's calendars for the picker (result.json).
   render     no network, no secrets: the `agenda` slot feed, and the `full` screen of a Slowboard
              470 (540x960, g16), from the artifact.
@@ -26,6 +27,7 @@ def sync_job(ctx):
     res = sync.run(ctx.now, srcs, platform.docs(ctx), state, tagger=platform.tagger(ctx, req) if refetch else None,
                    ai_hour=int(ctx.settings.get("ai_hour", 5)), force_ai=platform.force_ai(ctx), refetch=refetch)
     platform.write_agenda(ctx, res.rows)
+    platform.write_upcoming(ctx, res.upcoming, ctx.now)
     state.save()
     kit.log("calendar: " + "; ".join(res.lines))
     ctx.write_summary("ok" if res.ok else "warn", res.lines,

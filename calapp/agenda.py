@@ -11,9 +11,19 @@ in time order. The docs, as the app's UI will write them (calsync's files, S7 co
           always wins. by "ai": a tag calsync's AI made, taken as if cached. by "rules": ignored.
   names   {series: "display name"}               the wall's name for a series; the calendar keeps its own
   shown   {cal_key: false | true | {"show": b}}  calendars left off; a calendar not listed is shown
+
+The sync job writes one doc back, for the page's "What's on the wall" list (writer = "job"):
+
+  upcoming {"series": {series: {"title", "calendar", "next", "count", "tag", "by", "why"}}, "at"}
+          every upcoming series (holidays aside, which are always shown and never tagged): its
+          wall title, calendar name, next occurrence ("YYYY-MM-DD" or "YYYY-MM-DDTHH:MM"), how
+          often it occurs in the window, and its tag with who set it (by "user", "fixed", "ai" or
+          "rules") and why. Titles and calendar names only: never an account, address or secret.
 """
 from . import ai as ai_mod
-from .rules import TAG_VALUES, rules_tag
+from .rules import TAG_VALUES, fixed_tag, rules_tag
+
+UPCOMING_MAX = 300                      # series in the upcoming doc (its max_kb is 128)
 
 
 def is_shown(shown, cal_key):
@@ -40,7 +50,8 @@ def upcoming(occs, today):
 def tag(occs, today, user_tags, cache, cal_names, tagger=None):
     """Tag every upcoming series. -> (tags {series: {tag, by, why}}, report).
 
-    Order: the household's tag; else the AI cache (by series_hash); else a calsync AI tag in the
+    Order: the household's tag; else a fixed tag (bin days: always important, whatever the AI
+    says, and the AI isn't asked); else the AI cache (by series_hash); else a calsync AI tag in the
     `tags` doc (seeds the cache); else, if `tagger` is given, the AI is asked about the rest in one
     go and its answers cached; else the rules, for now (not cached: the AI gets them next time).
     `cache` is updated in place. report: {"asked", "got", "error", "used"}."""
@@ -53,6 +64,10 @@ def tag(occs, today, user_tags, cache, cal_names, tagger=None):
         u = (user_tags or {}).get(sid) or {}
         if u.get("tag") in TAG_VALUES and u.get("by", "user") == "user":
             tags[sid] = dict(tag=u["tag"], by="user", why=u.get("why", "set by you"))
+            continue
+        fixed = fixed_tag(o["title"])
+        if fixed:
+            tags[sid] = dict(tag=fixed[0], by="fixed", why=fixed[1])
             continue
         h = hashes[sid] = ai_mod.series_hash(o, cal_names.get(o["cal_key"], ""))
         if h in cache:
@@ -96,3 +111,25 @@ def build(occs, tags, names, today):
         rows.append(dict(date=o["date"], title=title(o), start=o["start"], end=o["end"], cal="calendar",
                          reps=reps.get(o["series"], 1), tag=tags.get(o["series"], {}).get("tag", "regular")))
     return rows
+
+
+def upcoming_doc(occs, tags, names, cal_names, today):
+    """-> the `upcoming` doc's "series" (see the module docstring), soonest first."""
+    names = names or {}
+    out, counts = {}, {}
+    ups = sorted(upcoming(occs, today), key=lambda o: (o["date"], o["start"] or "", o["title"]))
+    for o in ups:
+        counts[o["series"]] = counts.get(o["series"], 0) + 1
+    for o in ups:
+        sid = o["series"]
+        if sid in out:
+            continue
+        if len(out) >= UPCOMING_MAX:
+            break
+        n = names.get(sid)
+        t = tags.get(sid) or dict(tag="regular", by="rules", why="")
+        out[sid] = dict(title=(n if isinstance(n, str) and n.strip() else o["title"])[:120],
+                        calendar=(cal_names.get(o["cal_key"]) or "")[:60],
+                        next=o["date"] + (f"T{o['start']}" if o["start"] else ""),
+                        count=counts[sid], tag=t["tag"], by=t["by"], why=(t.get("why") or "")[:160])
+    return out

@@ -38,6 +38,7 @@ class Result:
     ok: bool
     lines: list
     report: dict
+    upcoming: dict = field(default_factory=dict)
 
 
 def _load(path, default):
@@ -120,7 +121,7 @@ def run(now, sources, docs, state, tagger=None, ai_hour=5, force_ai=False, refet
     lines += [f"failed: {p}" for p in problems]
     if refetch:
         state.state["last"] = dict(at=now.strftime("%H:%M"), ok=not problems, summary="; ".join(lines)[:400])
-    return Result(rows, not problems, lines, report)
+    return Result(rows, not problems, lines, report, agenda.upcoming_doc(occs, tags, docs.names, cal_names, today))
 
 
 def calendars(sources, shown):

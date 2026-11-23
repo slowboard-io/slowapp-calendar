@@ -79,6 +79,13 @@ max_kb = 64
 writer = "ui"
 on_change = ["sync"]
 
+# {"series": {series: {title, calendar, next, count, tag, by, why}}, "at"}: every upcoming series and
+# its tag, for the page's "What's on the wall" list. The sync job writes it when it changed; the page
+# reads it and sets a tag by writing docs.tags (by "user").
+[docs.upcoming]
+max_kb = 128
+writer = "job"
+
 # {cal_key: false}: calendars left off the wall. settings.json's calendars[*].show.
 [docs.shown]
 max_kb = 16
@@ -86,10 +93,11 @@ writer = "ui"
 on_change = ["sync"]
 
 # The page: connect calendars and the AI key (value secrets through the bridge's secrets.set, sealed
-# on the hub), the AI provider, and Sync now. Google's sign-in (<sb-connect>, the bridge's
-# secrets.connect) waits for the hub's OAuth (secrets track S4, S5); a Google calendar's secret
-# iCal address works meanwhile. Still to come: the calendar picker (docs.shown) and the
-# upcoming list with tag buttons (docs.tags, docs.names).
+# on the hub), the AI provider, and Sync now. Google connects through the bridge's secrets.connect
+# (protocol 2; on a hub without it the page says so), and a Google calendar's secret
+# iCal address works meanwhile. "What's on the wall" lists docs.upcoming with Hidden / Regular /
+# Important / Auto per series, written to docs.tags. Still to come: the calendar picker
+# (docs.shown) and renaming a series (docs.names).
 [ui]
 entry = "/ui/index.html"
 

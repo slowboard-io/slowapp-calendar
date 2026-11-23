@@ -125,3 +125,26 @@ class Calendars(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Fixed(unittest.TestCase):
+    """Bin days: important whatever the AI or its cache says, and the AI isn't asked; the
+    household's own tag still wins."""
+
+    def occ(self, title, sid="s1"):
+        return dict(series=sid, title=title, date="2026-10-20", start="07:00", end=None, cal_key="k", holiday=False,
+                    repeating=True)
+
+    def test_a_bin_day_is_important_and_not_asked(self):
+        from calapp import agenda
+        o = self.occ("Garbage + recycling")
+        cache = {ai.series_hash(o, ""): dict(tag="hidden", why="chore", at="2026-10-01", seen="2026-10-01")}
+        asked = []
+        tags, report = agenda.tag([o], "2026-10-19", {}, cache, {}, lambda want, ctx: asked.append(want) or ({}, "x"))
+        self.assertEqual(tags["s1"], dict(tag="important", by="fixed", why="bin day"))
+        self.assertEqual((asked, report["asked"]), ([], 0))
+
+    def test_the_households_tag_beats_it(self):
+        from calapp import agenda
+        tags, _ = agenda.tag([self.occ("Green bin")], "2026-10-19", {"s1": {"tag": "regular", "by": "user"}}, {}, {})
+        self.assertEqual(tags["s1"]["by"], "user")

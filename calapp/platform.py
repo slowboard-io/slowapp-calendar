@@ -27,6 +27,7 @@ from . import ai, http, sources
 from .sync import Docs
 
 AGENDA, AGENDA_FILE = "agenda", "agenda.json"
+UPCOMING = "upcoming"                    # the page's list, a doc the sync job writes
 DEADLINE_MARGIN_S = 5
 
 
@@ -103,6 +104,16 @@ def force_ai(ctx):
 def write_agenda(ctx, rows):
     require_contract6(ctx)
     ctx.write_artifact(AGENDA, AGENDA_FILE, rows)
+
+
+def write_upcoming(ctx, series, now):
+    """The page's list (the `upcoming` doc), written only when a series, tag or date changed: a
+    sync that finds nothing new leaves the doc, and the page, alone."""
+    old = ctx.doc(UPCOMING, None)
+    if isinstance(old, dict) and old.get("series") == series:
+        return False
+    ctx.write_doc(UPCOMING, {"series": series, "at": now.isoformat(timespec="minutes")})
+    return True
 
 
 def read_agenda(ctx):

@@ -32,6 +32,11 @@ class SyncCtx:
         self.google = google
         self._docs = docs or {}
         self.artifacts, self.summary, self.res = {}, None, None
+        self.wrote = {}
+
+    def write_doc(self, name, value):
+        assert MANIFEST["docs"][name].get("writer") in ("job", "both"), name
+        self.wrote[name] = json.loads(json.dumps(value))
 
     def token(self, name, optional=None):
         assert name == "google"
@@ -88,7 +93,7 @@ class Sync(unittest.TestCase):
     def test_secrets_never_reach_state_or_the_artifact(self):
         ctx = SyncCtx(self.data)
         jobs.sync_job(ctx)
-        written = json.dumps(list(ctx.artifacts.values())) + "".join(p.read_text() for p in Path(self.data).glob("*.json"))
+        written = json.dumps(list(ctx.artifacts.values())) + json.dumps(ctx.wrote) + "".join(p.read_text() for p in Path(self.data).glob("*.json"))
         for secret in (replay.GOOGLE_TOKEN, "abcd-efgh-ijkl-mnop", "private-0123abcd", replay.AI_KEY):
             self.assertNotIn(secret, written)
 
@@ -99,6 +104,42 @@ class Sync(unittest.TestCase):
         jobs.sync_job(ctx)
         self.assertEqual(len(self.replay.calls), n)
         self.assertNotIn("Coffee with Sam", {r["title"] for r in ctx.artifacts[("agenda", "agenda.json")]})
+
+    def test_upcoming_doc_lists_every_series_with_its_tag(self):
+        ctx = SyncCtx(self.data, docs=json.loads((replay.SOURCES / "docs.json").read_text()))
+        jobs.sync_job(ctx)
+        up = ctx.wrote["upcoming"]
+        self.assertEqual(set(up), {"series", "at"})
+        series = up["series"]
+        rows = [r for r in ctx.artifacts[("agenda", "agenda.json")] if r["cal"] != "holiday"]
+        self.assertEqual({v["title"] for v in series.values()}, {r["title"] for r in rows})
+        nexts = [v["next"] for v in series.values()]
+        self.assertEqual(nexts, sorted(nexts))                     # soonest first
+        for v in series.values():
+            self.assertEqual(set(v), {"title", "calendar", "next", "count", "tag", "by", "why"})
+            self.assertIn(v["by"], {"user", "fixed", "ai", "rules"})
+        demo = series["google:alex@example.com|demodayq4@google.com"]
+        self.assertEqual((demo["tag"], demo["by"]), ("important", "user"))
+        self.assertEqual(series["google:alex@example.com|pitchnight@google.com"]["title"], "Pitch night at the Tectoria")
+
+    def test_upcoming_doc_is_written_only_when_it_changed(self):
+        first = SyncCtx(self.data)
+        jobs.sync_job(first)
+        again = SyncCtx(self.data, docs={"upcoming": first.wrote["upcoming"]})
+        jobs.sync_job(again)
+        self.assertNotIn("upcoming", again.wrote)
+
+    def test_a_tag_set_on_the_page_reaches_the_doc_without_fetching(self):
+        first = SyncCtx(self.data)
+        jobs.sync_job(first)
+        sid, v = next((k, v) for k, v in first.wrote["upcoming"]["series"].items() if v["tag"] != "hidden")
+        n = len(self.replay.calls)
+        ctx = SyncCtx(self.data, reason="docs", docs={"upcoming": first.wrote["upcoming"],
+                                                      "tags": {sid: {"tag": "hidden", "by": "user", "why": "set on the page"}}})
+        jobs.sync_job(ctx)
+        self.assertEqual(len(self.replay.calls), n)
+        self.assertEqual({k: ctx.wrote["upcoming"]["series"][sid][k] for k in ("tag", "by")}, {"tag": "hidden", "by": "user"})
+        self.assertNotIn(v["title"], {r["title"] for r in ctx.artifacts[("agenda", "agenda.json")] if r.get("tag") != "hidden"})
 
     def test_tag_with_ai_now(self):
         ctx = SyncCtx(self.data, args={"ai": True})
